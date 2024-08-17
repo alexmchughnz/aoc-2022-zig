@@ -36,15 +36,19 @@ pub fn readLines(allocator: mem.Allocator, path: []const u8) !LineIterator {
     return iter;
 }
 
-test readLines {
+fn test_readLines(allocator: mem.Allocator) !void {
     const path = "/Users/Alex/Developer/advent_of_code/aoc2022/aoc2022-zig/src/helpers/test_read_lines.txt";
-    var lines = try readLines(std.testing.allocator, path);
+    var lines = try readLines(allocator, path);
     defer lines.free();
 
     for (1..6) |i| {
         const line = lines.next().?;
-        const char = '0' + i;
-        std.debug.print("line = {s}. char = {}.\n", .{ line, char });
+        const char: u8 = @intCast('0' + i);
+        std.debug.print("line = \"{s}\". char = '{c}'.\n", .{ line, char });
         try std.testing.expect(line[0] == char);
     }
+}
+
+test readLines {
+    try std.testing.checkAllAllocationFailures(std.testing.allocator, test_readLines, .{});
 }
