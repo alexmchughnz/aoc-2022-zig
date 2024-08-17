@@ -3,8 +3,6 @@ const fs = std.fs;
 const heap = std.heap;
 const mem = std.mem;
 
-var gpa = heap.GeneralPurposeAllocator(.{}){};
-
 const LineIterator = struct {
     allocator: mem.Allocator,
     text: []const u8,
@@ -25,14 +23,14 @@ const LineIterator = struct {
     }
 };
 
-pub fn readLines(path: []const u8) !LineIterator {
+pub fn readLines(allocator: mem.Allocator, path: []const u8) !LineIterator {
     const file = try fs.openFileAbsolute(path, .{});
     defer file.close();
 
     const size = (try file.stat()).size;
-    const text = try file.reader().readAllAlloc(gpa.allocator(), size);
+    const text = try file.reader().readAllAlloc(allocator, size);
     const iter = LineIterator{
-        .allocator = gpa.allocator(),
+        .allocator = allocator,
         .text = text,
     };
     return iter;
@@ -40,7 +38,7 @@ pub fn readLines(path: []const u8) !LineIterator {
 
 test readLines {
     const path = "/Users/Alex/Developer/advent_of_code/aoc2022/aoc2022-zig/src/helpers/test_read_lines.txt";
-    var lines = try readLines(path);
+    var lines = try readLines(std.testing.allocator, path);
     defer lines.free();
 
     for (1..6) |i| {
